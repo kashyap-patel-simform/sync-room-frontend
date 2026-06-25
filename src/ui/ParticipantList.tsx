@@ -1,4 +1,4 @@
-import { getClientId } from "../lib/browserId";
+import { getClientId } from "../lib/client-id";
 import { cn } from "../lib/cn";
 import { useRoomStore } from "../store/useRoomStore";
 import { Avatar } from "./Avatar";

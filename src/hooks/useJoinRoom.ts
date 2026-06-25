@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { ROOM_CODE_LENGTH } from "../constants";
-import { getClientId } from "../lib/browserId";
+import { getClientId } from "../lib/client-id";
 import { useSocket } from "./useSocket";
 import { useRoomStore } from "../store/useRoomStore";
 import { useNavigate } from "react-router-dom";

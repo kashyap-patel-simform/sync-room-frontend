@@ -1,41 +1,26 @@
 import { useEffect } from "react";
-import {
-  Navigate,
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { RoomHeader } from "../components/RoomHeader";
 import { RoomSidebar } from "../components/RoomSidebar";
 import { usePlayerControls } from "../hooks/usePlayerControls";
 import { useSocket } from "../hooks/useSocket";
 import { useSocketEvent } from "../hooks/useSocketEvent";
-import { getClientId } from "../lib/browserId";
+import { getClientId } from "../lib/client-id";
 import { extractYouTubeId } from "../lib/youtube";
 import { useRoomStore } from "../store/useRoomStore";
-import type { ApiResponse, RoomSession } from "../types";
+import type { ApiResponse } from "../types";
 import type { Room } from "../types/socket";
 import { PlayerControls } from "../ui/PlayerControls";
 import { VideoPlayer } from "../ui/VideoPlayer";
 
-type LocationState = Omit<RoomSession, "code">;
-
 export function RoomPage() {
   const { code = "" } = useParams<{ code: string }>();
   const { socket } = useSocket();
-  const location = useLocation();
   const navigate = useNavigate();
-  const locationState = location.state as LocationState | null;
 
-  const {
-    initRoom,
-    setRoomName,
-    setParticipants,
-    setSynced,
-    videoUrl,
-    isHost,
-  } = useRoomStore();
+  const { initRoom, setParticipants, setSynced, videoUrl, isHost } =
+    useRoomStore();
 
   // All hooks must run before any conditional return
   const handleSync = () => {
@@ -61,9 +46,6 @@ export function RoomPage() {
   });
 
   useEffect(() => {
-    if (!locationState) return;
-    // initRoom({ code, ...locationState });
-
     const fetchRoomData = async () => {
       try {
         const res = await fetch(
@@ -71,9 +53,13 @@ export function RoomPage() {
           { method: "GET" },
         );
         const data = (await res.json()) as ApiResponse<Room>;
-        if (data.success) {
-          setParticipants(data.data.participants);
-          setRoomName(data.data.roomName);
+        if (data.success && data.data) {
+          initRoom({
+            ...data.data,
+            userId: getClientId(),
+            userName: localStorage.getItem("user_name") ?? "Unknown",
+            isHost: data.data.hostId === getClientId(),
+          });
         }
       } catch {
         toast.error("Failed to load room data.");
@@ -84,12 +70,7 @@ export function RoomPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Guard: navigating directly to /room/:code without going through create/join
-  if (!locationState) {
-    return <Navigate to="/" replace />;
-  }
-
-  const effectiveVideoUrl = videoUrl || locationState.videoUrl;
+  const effectiveVideoUrl = videoUrl;
   const videoId = extractYouTubeId(effectiveVideoUrl) ?? undefined;
 
   const handleLeave = () => {
@@ -99,6 +80,7 @@ export function RoomPage() {
       (res) => {
         if (res.success) {
           toast.success("You left the room.");
+          localStorage.removeItem("user_name");
         } else {
           toast.error(res.error ?? "Failed to leave room.");
         }

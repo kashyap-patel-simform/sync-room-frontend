@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { getClientId } from "../lib/browserId";
+import { getClientId } from "../lib/client-id";
 import { extractYouTubeId } from "../lib/youtube";
 import { useRoomStore } from "../store/useRoomStore";
 import type { ApiResponse } from "../types";
@@ -85,6 +85,8 @@ export function useCreateRoom() {
         userId: getClientId(),
         isHost: true,
       });
+
+      localStorage.setItem("user_name", userName);
 
       // Host was created via HTTP, so their socket is not yet in the
       // Socket.io room. Emit join_room so socket.join(roomCode) runs
