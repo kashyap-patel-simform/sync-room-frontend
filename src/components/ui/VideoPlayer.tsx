@@ -1,6 +1,5 @@
 import { cn } from "../../lib/cn";
-import { IconPlay } from "./icons";
-
+import { IconPlay } from "../../ui/icons";
 interface VideoPlayerProps {
   videoId?: string;
   isHost?: boolean;
