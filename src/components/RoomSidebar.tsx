@@ -3,10 +3,9 @@ import { useRoomStore } from "../store/useRoomStore";
 import { ParticipantList } from "../ui/ParticipantList";
 
 export function RoomSidebar() {
-  const { roomName, videoUrl, role } = useRoomStore();
+  const { roomName, videoUrl, isHost } = useRoomStore();
 
   const videoId = extractYouTubeId(videoUrl) ?? undefined;
-  const isHost = role === "host";
 
   return (
     <aside className="w-64 border-l border-border bg-page flex flex-col shrink-0 overflow-hidden">

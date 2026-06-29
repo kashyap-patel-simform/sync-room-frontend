@@ -1,6 +1,7 @@
 import YouTube, { type YouTubePlayer } from "react-youtube";
 import { cn } from "../lib/cn";
 import { IconPlay } from "./icons";
+import { useRoomStore } from "../store/useRoomStore";
 
 interface VideoPlayerProps {
   videoId?: string;
@@ -42,6 +43,8 @@ export function VideoPlayer({
   onReady,
   onStateChange,
 }: Readonly<VideoPlayerProps>) {
+  const { playing } = useRoomStore();
+
   if (!videoId) {
     return (
       <div
@@ -59,9 +62,9 @@ export function VideoPlayer({
     height: "100%",
     width: "100%",
     playerVars: {
-      autoplay: 0 as const,
+      autoplay: playing ?? (0 as const),
       controls: 0 as const, // always hide YouTube's built-in controls
-      modestbranding: 1 as const,
+      modestbranding: 0 as const,
       rel: 0 as const,
       showinfo: 0 as const,
     },

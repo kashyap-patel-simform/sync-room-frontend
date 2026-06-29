@@ -19,8 +19,15 @@ export function RoomPage() {
   const { socket } = useSocket();
   const navigate = useNavigate();
 
-  const { initRoom, setParticipants, setSynced, videoUrl, isHost } =
-    useRoomStore();
+  const {
+    initRoom,
+    setParticipants,
+    setSynced,
+    videoUrl,
+    isHost,
+    roomName,
+    clearRoom,
+  } = useRoomStore();
 
   // All hooks must run before any conditional return
   const handleSync = () => {
@@ -66,7 +73,7 @@ export function RoomPage() {
       }
     };
 
-    fetchRoomData();
+    if (roomName === "") fetchRoomData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -80,6 +87,7 @@ export function RoomPage() {
       (res) => {
         if (res.success) {
           toast.success("You left the room.");
+          clearRoom();
           localStorage.removeItem("user_name");
         } else {
           toast.error(res.error ?? "Failed to leave room.");

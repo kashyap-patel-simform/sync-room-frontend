@@ -14,6 +14,7 @@ export function usePlayerControls({ onSync }: UsePlayerControlsOptions = {}) {
 
   const {
     code,
+    isHost,
     playing,
     setPlaying,
     currentTime,
@@ -59,6 +60,14 @@ export function usePlayerControls({ onSync }: UsePlayerControlsOptions = {}) {
     storeSetCurrentTime(payload.timestamp);
   });
 
+  useSocketEvent("sync_tick", (payload) => {
+    if (payload.playing) playerRef.current?.playVideo();
+    else playerRef.current?.pauseVideo();
+
+    storeSetCurrentTime(payload.currentTime);
+    playerRef.current?.seekTo(payload.currentTime, true);
+  });
+
   // Poll current time every 500ms while playing
   useEffect(() => {
     if (!playing) return;
@@ -68,14 +77,36 @@ export function usePlayerControls({ onSync }: UsePlayerControlsOptions = {}) {
     return () => clearInterval(id);
   }, [playing, storeSetCurrentTime]);
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (isConnected && isHost)
+        socket.current?.emit("host_heartbeat", {
+          roomCode: code,
+          currentTimestamp: playerRef.current?.getCurrentTime(),
+          playing: playerRef.current?.playing,
+        });
+    }, 2000);
+    return () => clearInterval(id);
+  }, [playing]);
+
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const effectiveVolume = muted ? 0 : volume;
 
   const handlePlayerReady = (player: YouTubePlayer) => {
     playerRef.current = player;
+
     const d = player.getDuration();
     if (d > 0) setDuration(d);
     player.setVolume(DEFAULT_VOLUME);
+    player.setPlaybackRate(speed);
+
+    // Sync late-joining viewers to current room playback state
+    if (currentTime > 0) {
+      player.seekTo(currentTime, true);
+    }
+    if (playing) {
+      player.playVideo();
+    }
   };
 
   // YT states: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued
