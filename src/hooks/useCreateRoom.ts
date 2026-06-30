@@ -91,6 +91,11 @@ export function useCreateRoom() {
       // Host was created via HTTP, so their socket is not yet in the
       // Socket.io room. Emit join_room so socket.join(roomCode) runs
       // on the server — required to receive USER_JOINED broadcasts.
+      const joinTimeoutId = setTimeout(() => {
+        setCreating(false);
+        toast.error("Request timed out. Please try again.");
+      }, 10_000);
+
       socket.current?.emit(
         "join_room",
         {
@@ -99,7 +104,9 @@ export function useCreateRoom() {
           userName,
         },
         () => {
+          clearTimeout(joinTimeoutId);
           toast.success(`Room created! Code: ${data.data!.roomCode}`);
+          setCreating(false);
           navigate(`/room/${data.data!.roomCode}`);
         },
       );

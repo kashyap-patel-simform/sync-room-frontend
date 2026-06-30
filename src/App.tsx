@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { HomePage } from "./screens/HomePage";
 import { RoomPage } from "./screens/RoomPage";
 
 function App() {
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -29,6 +31,7 @@ function App() {
         }}
       />
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

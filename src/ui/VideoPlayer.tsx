@@ -1,7 +1,6 @@
 import YouTube, { type YouTubePlayer } from "react-youtube";
 import { cn } from "../lib/cn";
 import { IconPlay } from "./icons";
-import { useRoomStore } from "../store/useRoomStore";
 
 interface VideoPlayerProps {
   videoId?: string;
@@ -36,6 +35,19 @@ function RoleBadge({ isHost }: { isHost: boolean }) {
   );
 }
 
+// Defined at module scope so react-youtube receives a stable object reference
+// and doesn't re-initialise the player on every parent render.
+const YOUTUBE_OPTS = {
+  height: "100%",
+  width: "100%",
+  playerVars: {
+    controls: 0 as const,
+    modestbranding: 1 as const,
+    rel: 0 as const,
+    showinfo: 0 as const,
+  },
+};
+
 export function VideoPlayer({
   videoId,
   isHost = false,
@@ -43,8 +55,6 @@ export function VideoPlayer({
   onReady,
   onStateChange,
 }: Readonly<VideoPlayerProps>) {
-  const { playing } = useRoomStore();
-
   if (!videoId) {
     return (
       <div
@@ -58,18 +68,6 @@ export function VideoPlayer({
     );
   }
 
-  const opts = {
-    height: "100%",
-    width: "100%",
-    playerVars: {
-      autoplay: playing ?? (0 as const),
-      controls: 0 as const, // always hide YouTube's built-in controls
-      modestbranding: 0 as const,
-      rel: 0 as const,
-      showinfo: 0 as const,
-    },
-  };
-
   return (
     <div
       className={cn(
@@ -79,7 +77,7 @@ export function VideoPlayer({
     >
       <YouTube
         videoId={videoId}
-        opts={opts}
+        opts={YOUTUBE_OPTS}
         onReady={(e) => onReady?.(e.target)}
         onStateChange={(e) => onStateChange?.(e.data)}
         className="absolute inset-0 w-full h-full"

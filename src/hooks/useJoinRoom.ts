@@ -18,7 +18,7 @@ export function useJoinRoom() {
   const [joining, setJoining] = useState(false);
 
   const canJoin =
-    joinCode.trim().length >= ROOM_CODE_LENGTH && userName.trim().length > 0;
+    joinCode.trim().length === ROOM_CODE_LENGTH && userName.trim().length > 0;
 
   const handleJoin = () => {
     if (!canJoin) return;
@@ -30,6 +30,12 @@ export function useJoinRoom() {
 
     setJoining(true);
 
+    // Guard against server callback never firing (network drop, server crash).
+    const timeoutId = setTimeout(() => {
+      setJoining(false);
+      toast.error("Request timed out. Please try again.");
+    }, 10_000);
+
     socket.current.emit(
       "join_room",
       {
@@ -38,11 +44,13 @@ export function useJoinRoom() {
         userName: userName,
       },
       (res) => {
+        clearTimeout(timeoutId);
         if (!res.success) {
           toast.error("Failed to join room. Check the room code.");
           setJoining(false);
           return;
         }
+        localStorage.setItem("user_name", userName);
         initRoom({
           ...res.data,
           userId: getClientId(),

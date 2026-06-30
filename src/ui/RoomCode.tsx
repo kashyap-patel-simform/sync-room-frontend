@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { cn } from '../lib/cn'
 import { IconCopy, IconCheck } from './icons'
 
@@ -10,10 +11,20 @@ interface RoomCodeProps {
 export function RoomCode({ code, className }: Readonly<RoomCodeProps>) {
   const [copied, setCopied] = useState(false)
 
+  // Clean up the reset timer if the component unmounts before it fires.
+  useEffect(() => {
+    if (!copied) return
+    const id = setTimeout(() => setCopied(false), 2000)
+    return () => clearTimeout(id)
+  }, [copied])
+
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+    } catch {
+      toast.error('Failed to copy room code.')
+    }
   }
 
   return (

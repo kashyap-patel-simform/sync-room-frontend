@@ -78,5 +78,6 @@ export interface ClientToServerEvents {
     roomCode: string;
     currentTimestamp: number;
     playing: boolean;
+    sync_all?: boolean;
   }) => void;
 }

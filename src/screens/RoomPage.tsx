@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { RoomHeader } from "../components/RoomHeader";
@@ -16,7 +16,7 @@ import { VideoPlayer } from "../ui/VideoPlayer";
 
 export function RoomPage() {
   const { code = "" } = useParams<{ code: string }>();
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
   const navigate = useNavigate();
 
   const {
@@ -28,6 +28,8 @@ export function RoomPage() {
     roomName,
     clearRoom,
   } = useRoomStore();
+
+  const [leaving, setLeaving] = useState(false);
 
   // All hooks must run before any conditional return
   const handleSync = () => {
@@ -52,13 +54,18 @@ export function RoomPage() {
     });
   });
 
+  // Fetch room state on direct navigation (e.g. page reload).
+  // AbortController prevents setState on an unmounted component.
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchRoomData = async () => {
       try {
         const res = await fetch(
           `${import.meta.env.VITE_BASE_URL}/room?roomCode=${code}`,
-          { method: "GET" },
+          { method: "GET", signal: controller.signal },
         );
+
         const data = (await res.json()) as ApiResponse<Room>;
         if (data.success && data.data) {
           initRoom({
@@ -68,38 +75,72 @@ export function RoomPage() {
             isHost: data.data.hostId === getClientId(),
           });
         }
-      } catch {
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         toast.error("Failed to load room data.");
       }
     };
 
     if (roomName === "") fetchRoomData();
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-join the Socket.io room after a reconnect so broadcasts keep arriving.
+  const hasJoinedRef = useRef(false);
+  useEffect(() => {
+    if (!isConnected) return;
+    if (!hasJoinedRef.current) {
+      hasJoinedRef.current = true;
+      return;
+    }
+    if (!socket.current || !code) return;
+    socket.current.emit(
+      "join_room",
+      {
+        roomCode: code,
+        userId: getClientId(),
+        userName: localStorage.getItem("user_name") ?? "Unknown",
+      },
+      () => {},
+    );
+  }, [isConnected, code, socket]);
 
   const effectiveVideoUrl = videoUrl;
   const videoId = extractYouTubeId(effectiveVideoUrl) ?? undefined;
 
   const handleLeave = () => {
-    socket.current?.emit(
+    if (leaving) return;
+
+    // If already disconnected, clean up locally and navigate.
+    if (!isConnected || !socket.current) {
+      clearRoom();
+      localStorage.removeItem("user_name");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    setLeaving(true);
+    socket.current.emit(
       "leave_room",
       { roomCode: code, userId: getClientId() },
       (res) => {
+        setLeaving(false);
         if (res.success) {
           toast.success("You left the room.");
           clearRoom();
           localStorage.removeItem("user_name");
+          navigate("/", { replace: true });
         } else {
           toast.error(res.error ?? "Failed to leave room.");
         }
-        navigate("/", { replace: true });
       },
     );
   };
 
   return (
     <div className="h-screen bg-canvas flex flex-col overflow-hidden">
-      <RoomHeader onLeave={handleLeave} />
+      <RoomHeader onLeave={handleLeave} leaving={leaving} />
 
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1 flex flex-col gap-4 p-4 overflow-hidden min-w-0">

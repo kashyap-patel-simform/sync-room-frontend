@@ -14,9 +14,10 @@ function SyncedIndicator() {
 
 interface RoomHeaderProps {
   onLeave: () => void;
+  leaving?: boolean;
 }
 
-export function RoomHeader({ onLeave }: Readonly<RoomHeaderProps>) {
+export function RoomHeader({ onLeave, leaving = false }: Readonly<RoomHeaderProps>) {
   const { code, roomName, synced } = useRoomStore();
 
   return (
@@ -53,6 +54,7 @@ export function RoomHeader({ onLeave }: Readonly<RoomHeaderProps>) {
         size="sm"
         icon={<IconLogOut />}
         onClick={onLeave}
+        disabled={leaving}
         className="text-fg-subtle hover:text-danger shrink-0"
       >
         <span className="hidden sm:block">Leave</span>

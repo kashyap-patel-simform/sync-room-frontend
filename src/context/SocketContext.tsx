@@ -44,8 +44,15 @@ const SocketProvider: React.FC<{
 
     socketRef.current = socketInstance;
 
+    // Track whether this is the very first connection so we don't spam the
+    // user with a toast on every reconnect after a network blip.
+    let connected = false;
+
     socketInstance.on("connect", () => {
-      toast.success("Socket Connected");
+      if (connected) {
+        toast.info("Reconnected.", { duration: 2000 });
+      }
+      connected = true;
       setIsConnected(true);
       setError(null);
     });
