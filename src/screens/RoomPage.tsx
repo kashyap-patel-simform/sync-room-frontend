@@ -30,6 +30,7 @@ export function RoomPage() {
   } = useRoomStore();
 
   const [leaving, setLeaving] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // All hooks must run before any conditional return
   const handleSync = () => {
@@ -140,25 +141,58 @@ export function RoomPage() {
 
   return (
     <div className="h-screen bg-canvas flex flex-col overflow-hidden">
-      <RoomHeader onLeave={handleLeave} leaving={leaving} />
+      <RoomHeader
+        onLeave={handleLeave}
+        leaving={leaving}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen((v) => !v)}
+      />
 
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 flex flex-col gap-4 p-4 overflow-hidden min-w-0">
+        {/*
+         * Portrait mobile   – flex-col, video is natural aspect-video width-based height,
+         *                      main scrolls vertically so controls stay reachable.
+         * Landscape mobile  – flex-row: video left (fixed 56% width, aspect-video height),
+         *                      controls right (scrollable column).
+         * Desktop (sm+)     – flex-col, video flex-1 fills remaining height.
+         */}
+        <main
+          className={[
+            "flex-1 flex flex-col min-w-0",
+            "gap-3 p-3 overflow-y-auto",
+            "sm:flex-col sm:gap-4 sm:p-4 sm:overflow-hidden",
+            "max-sm:landscape:flex-row max-sm:landscape:items-start max-sm:landscape:gap-2 max-sm:landscape:p-2 max-sm:landscape:overflow-hidden",
+          ].join(" ")}
+        >
           <VideoPlayer
             videoId={videoId}
             isHost={isHost}
             onReady={controls.handlePlayerReady}
             onStateChange={controls.handleStateChange}
-            className="flex-1 min-h-0"
+            className={[
+              // Mobile portrait: natural aspect-video height
+              "w-full aspect-video shrink-0",
+              // Mobile landscape: fixed width, let aspect-video set height, centre vertically
+              "max-sm:landscape:w-[56%] max-sm:landscape:self-center",
+              // Desktop: grow to fill remaining height (aspect-video overridden by flex-grow)
+              "sm:w-auto sm:flex-1 sm:min-h-0",
+            ].join(" ")}
           />
           <PlayerControls
             isHost={isHost}
             controls={controls}
-            className="shrink-0"
+            className={[
+              "shrink-0",
+              // Landscape mobile: take remaining width, scroll if content overflows
+              "max-sm:landscape:flex-1 max-sm:landscape:self-stretch max-sm:landscape:overflow-y-auto",
+            ].join(" ")}
           />
         </main>
 
-        <RoomSidebar />
+        <RoomSidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
       </div>
     </div>
   );

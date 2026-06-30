@@ -89,6 +89,7 @@ export function VideoPlayer({
       {!isHost && (
         <div
           className="absolute inset-0 cursor-not-allowed"
+          aria-hidden="true"
           title="Host controls playback for everyone"
         />
       )}

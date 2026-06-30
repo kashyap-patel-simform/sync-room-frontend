@@ -22,9 +22,14 @@ interface PlayerControlsProps {
 
 function SyncedBanner() {
   return (
-    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal/10 border border-teal/20 text-teal text-sm font-medium">
-      <IconSync />
-      <span>Host is controlling playback — you&apos;re in sync</span>
+    <div
+      className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-teal/10 border border-teal/20 text-teal text-xs sm:text-sm font-medium w-full"
+      role="status"
+      aria-live="polite"
+    >
+      <IconSync aria-hidden="true" />
+      <span className="sm:hidden">In sync</span>
+      <span className="hidden sm:inline">Host is controlling playback — you&apos;re in sync</span>
     </div>
   );
 }
@@ -87,10 +92,11 @@ function Timeline({
 }>) {
   return (
     <div className="space-y-1.5">
-      <div className="relative h-1.5 bg-surface-raised rounded-full cursor-pointer">
+      <div className="relative h-2 sm:h-1.5 bg-surface-raised rounded-full cursor-pointer">
         <div
           className="absolute inset-y-0 left-0 bg-amber rounded-full"
           style={{ width: `${progress}%` }}
+          aria-hidden="true"
         />
         <input
           type="range"
@@ -98,8 +104,13 @@ function Timeline({
           max={duration}
           value={currentTime}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="absolute inset-0 opacity-0 cursor-pointer"
+          className="absolute inset-0 opacity-0 cursor-pointer focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-amber/50 focus-visible:rounded-full"
           disabled={!isHost}
+          aria-label="Seek video position"
+          aria-valuemin={0}
+          aria-valuemax={duration}
+          aria-valuenow={currentTime}
+          aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
         />
       </div>
       <div className="flex justify-between text-xs font-mono text-fg-subtle">
@@ -129,12 +140,13 @@ function VolumeControl({
         onClick={onToggleMute}
         aria-label={muted ? "Unmute" : "Mute"}
       >
-        {muted ? <IconMute /> : <IconVolume />}
+        {muted ? <IconMute aria-hidden="true" /> : <IconVolume aria-hidden="true" />}
       </Button>
-      <div className="relative w-20 h-1.5 bg-surface-raised rounded-full">
+      <div className="relative w-14 sm:w-20 h-2 sm:h-1.5 bg-surface-raised rounded-full">
         <div
           className="absolute inset-y-0 left-0 bg-fg-muted rounded-full"
           style={{ width: `${effectiveVolume}%` }}
+          aria-hidden="true"
         />
         <input
           type="range"
@@ -143,6 +155,10 @@ function VolumeControl({
           value={effectiveVolume}
           onChange={(e) => onVolumeChange(Number(e.target.value))}
           className="absolute inset-0 opacity-0 cursor-pointer"
+          aria-label="Volume"
+          aria-valuenow={effectiveVolume}
+          aria-valuemin={0}
+          aria-valuemax={100}
         />
       </div>
     </div>
@@ -157,7 +173,8 @@ export function PlayerControls({
   return (
     <div
       className={cn(
-        "space-y-3 px-5 py-4 bg-surface rounded-2xl border border-border",
+        "space-y-2.5 sm:space-y-3 px-3 sm:px-5 py-3 sm:py-4 bg-surface rounded-2xl border border-border",
+        "max-sm:landscape:space-y-2 max-sm:landscape:py-2",
         className,
       )}
     >
@@ -169,14 +186,9 @@ export function PlayerControls({
         isHost={isHost}
       />
 
-      <div className="flex items-center gap-3">
-        {!isHost && (
-          <div
-            className={cn("flex items-center justify-center py-3", className)}
-          >
-            <SyncedBanner />
-          </div>
-        )}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {!isHost && <SyncedBanner />}
+
         {isHost && (
           <Button
             variant="primary"
@@ -185,7 +197,7 @@ export function PlayerControls({
             aria-label={controls.playing ? "Pause" : "Play"}
             className="shadow-[0_0_16px_rgba(240,160,32,0.35)] shrink-0"
           >
-            {controls.playing ? <IconPause /> : <IconPlay />}
+            {controls.playing ? <IconPause aria-hidden="true" /> : <IconPlay aria-hidden="true" />}
           </Button>
         )}
 
@@ -210,15 +222,16 @@ export function PlayerControls({
             <Button
               variant="teal"
               size="sm"
-              icon={<IconSync />}
+              icon={<IconSync aria-hidden="true" />}
               onClick={controls.handleSync}
-              className={cn(controls.syncing && "scale-95")}
+              className={cn("shrink-0 whitespace-nowrap", controls.syncing && "scale-95")}
             >
               {controls.syncing ? "Syncing…" : "Sync All"}
             </Button>
 
-            <Button variant="ghost" size="icon" aria-label="Fullscreen">
-              <IconFullscreen />
+            {/* Fullscreen — desktop only, not functional on mobile */}
+            <Button variant="ghost" size="icon" aria-label="Fullscreen" className="hidden md:inline-flex">
+              <IconFullscreen aria-hidden="true" />
             </Button>
           </>
         )}

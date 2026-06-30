@@ -11,6 +11,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export function Input({ label, hint, error, icon, action, className, id, ...props }: InputProps) {
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
+  const descId = (hint || error) ? `${inputId}-desc` : undefined
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -24,10 +25,12 @@ export function Input({ label, hint, error, icon, action, className, id, ...prop
       )}
       <div className="relative flex items-center">
         {icon && (
-          <span className="absolute left-3.5 text-fg-subtle pointer-events-none">{icon}</span>
+          <span className="absolute left-3.5 text-fg-subtle pointer-events-none" aria-hidden="true">{icon}</span>
         )}
         <input
           id={inputId}
+          aria-describedby={descId}
+          aria-invalid={!!error}
           className={cn(
             'w-full bg-surface border rounded-xl px-4 py-3 text-sm text-fg placeholder:text-fg-subtle',
             'focus:outline-none transition-all duration-150',
@@ -43,7 +46,9 @@ export function Input({ label, hint, error, icon, action, className, id, ...prop
         {action && <div className="absolute right-2">{action}</div>}
       </div>
       {(hint || error) && (
-        <p className={cn('text-xs', error ? 'text-danger' : 'text-fg-subtle')}>{error || hint}</p>
+        <p id={descId} role={error ? 'alert' : undefined} className={cn('text-xs', error ? 'text-danger' : 'text-fg-subtle')}>
+          {error || hint}
+        </p>
       )}
     </div>
   )

@@ -14,13 +14,14 @@ export function HomePage() {
         }}
       />
 
-      <header className="relative z-10 flex items-center px-8 py-5 border-b border-border/50">
+      <header className="relative z-10 flex items-center px-4 sm:px-8 py-4 sm:py-5 border-b border-border/50">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-amber flex items-center justify-center shadow-[0_0_12px_rgba(240,160,32,0.4)]">
             <svg
               className="w-4 h-4 text-canvas ml-0.5"
               fill="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path d="M8 5v14l11-7z" />
             </svg>
@@ -39,7 +40,8 @@ export function HomePage() {
         </div>
       </header>
 
-      <main className="relative z-10 flex-1 flex items-center px-8 py-12 gap-16 max-w-6xl mx-auto w-full">
+      <main className="relative z-10 flex-1 flex items-center px-4 sm:px-8 py-8 sm:py-12 gap-8 lg:gap-16 max-w-6xl mx-auto w-full">
+        {/* Hero copy — desktop only */}
         <div className="flex-1 hidden lg:flex flex-col gap-10">
           <BroadcastHero />
           <div className="space-y-4">
@@ -65,7 +67,18 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="w-full lg:w-100">
+        {/* Entry card — full width on mobile, fixed width on desktop */}
+        <div className="w-full lg:w-100 flex flex-col gap-6">
+          {/* Mobile-only headline above the card */}
+          <div className="lg:hidden text-center space-y-2">
+            <h1 className="font-display text-3xl font-bold text-fg leading-tight tracking-tight">
+              Shared screen.{" "}
+              <span className="text-fg-muted">Shared moment.</span>
+            </h1>
+            <p className="text-fg-muted text-sm leading-relaxed">
+              Watch YouTube together, in sync.
+            </p>
+          </div>
           <RoomEntryCard />
         </div>
       </main>
