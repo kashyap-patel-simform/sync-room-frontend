@@ -52,6 +52,14 @@ export function IconFullscreen({ className }: IconProps) {
   )
 }
 
+export function IconExitFullscreen({ className }: IconProps) {
+  return (
+    <svg className={cn('w-4 h-4', className)} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+    </svg>
+  )
+}
+
 export function IconLink({ className }: IconProps) {
   return (
     <svg className={cn('w-4 h-4', className)} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">

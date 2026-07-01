@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import YouTube, { type YouTubePlayer } from "react-youtube";
 import { cn } from "../lib/cn";
 import { IconPlay } from "./icons";
@@ -6,6 +7,7 @@ interface VideoPlayerProps {
   videoId?: string;
   isHost?: boolean;
   className?: string;
+  containerRef?: RefObject<HTMLDivElement | null>;
   onReady?: (player: YouTubePlayer) => void;
   onStateChange?: (state: number) => void;
 }
@@ -41,10 +43,13 @@ const YOUTUBE_OPTS = {
   height: "100%",
   width: "100%",
   playerVars: {
-    controls: 0 as const,
-    modestbranding: 1 as const,
-    rel: 0 as const,
-    showinfo: 0 as const,
+    controls: 0 as const,       // hide YouTube's native control bar
+    modestbranding: 1 as const, // minimal branding
+    rel: 0 as const,            // no related videos from other channels
+    showinfo: 0 as const,       // hide title/uploader in older embeds
+    iv_load_policy: 3 as const, // hide annotations
+    disablekb: 1 as const,      // disable YouTube keyboard shortcuts
+    fs: 0 as const,             // hide fullscreen button
   },
 };
 
@@ -52,12 +57,14 @@ export function VideoPlayer({
   videoId,
   isHost = false,
   className,
+  containerRef,
   onReady,
   onStateChange,
 }: Readonly<VideoPlayerProps>) {
   if (!videoId) {
     return (
       <div
+        ref={containerRef}
         className={cn(
           "relative aspect-video bg-surface rounded-2xl overflow-hidden flex items-center justify-center border border-border scanlines",
           className,
@@ -70,6 +77,7 @@ export function VideoPlayer({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "relative aspect-video bg-black rounded-2xl overflow-hidden",
         className,
@@ -85,14 +93,19 @@ export function VideoPlayer({
         title="Collaborative video player"
       />
 
-      {/* Block viewer interaction — only host drives playback */}
-      {!isHost && (
-        <div
-          className="absolute inset-0 cursor-not-allowed"
-          aria-hidden="true"
-          title="Host controls playback for everyone"
-        />
-      )}
+      {/*
+       * Cover the entire iframe for all users.
+       * This hides YouTube's built-in pause/end overlays (share, watch-later,
+       * "More videos", branding) which we cannot remove via player params.
+       * Playback is controlled exclusively through the YouTube IFrame API
+       * (player.playVideo / pauseVideo / seekTo), so blocking pointer events
+       * on the iframe itself has no effect on our custom controls.
+       */}
+      <div
+        className={cn("absolute inset-0", !isHost && "cursor-not-allowed")}
+        aria-hidden="true"
+        title={!isHost ? "Host controls playback for everyone" : undefined}
+      />
 
       <div className="absolute top-3 right-3">
         <RoleBadge isHost={isHost} />

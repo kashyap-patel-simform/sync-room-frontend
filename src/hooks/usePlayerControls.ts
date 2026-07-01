@@ -104,7 +104,6 @@ export function usePlayerControls({ onSync }: UsePlayerControlsOptions = {}) {
           roomCode: code,
           currentTimestamp: playerRef.current?.getCurrentTime() ?? 0,
           playing: playing,
-          sync_all: false,
         });
     }, 2000);
     return () => clearInterval(id);
@@ -198,7 +197,6 @@ export function usePlayerControls({ onSync }: UsePlayerControlsOptions = {}) {
         roomCode: code,
         currentTimestamp: playerRef.current?.getCurrentTime() ?? 0,
         playing,
-        sync_all: true,
       });
     }
     onSync?.();

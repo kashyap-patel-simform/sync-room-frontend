@@ -10,6 +10,7 @@ import {
   IconMute,
   IconSync,
   IconFullscreen,
+  IconExitFullscreen,
 } from "./icons";
 
 type Controls = ReturnType<typeof usePlayerControls>;
@@ -18,6 +19,8 @@ interface PlayerControlsProps {
   isHost: boolean;
   controls: Controls;
   className?: string;
+  onFullscreen?: () => void;
+  isFullscreen?: boolean;
 }
 
 function SyncedBanner() {
@@ -29,7 +32,9 @@ function SyncedBanner() {
     >
       <IconSync aria-hidden="true" />
       <span className="sm:hidden">In sync</span>
-      <span className="hidden sm:inline">Host is controlling playback — you&apos;re in sync</span>
+      <span className="hidden sm:inline">
+        Host is controlling playback — you&apos;re in sync
+      </span>
     </div>
   );
 }
@@ -140,7 +145,11 @@ function VolumeControl({
         onClick={onToggleMute}
         aria-label={muted ? "Unmute" : "Mute"}
       >
-        {muted ? <IconMute aria-hidden="true" /> : <IconVolume aria-hidden="true" />}
+        {muted ? (
+          <IconMute aria-hidden="true" />
+        ) : (
+          <IconVolume aria-hidden="true" />
+        )}
       </Button>
       <div className="relative w-14 sm:w-20 h-2 sm:h-1.5 bg-surface-raised rounded-full">
         <div
@@ -169,6 +178,8 @@ export function PlayerControls({
   isHost,
   controls,
   className,
+  onFullscreen,
+  isFullscreen = false,
 }: Readonly<PlayerControlsProps>) {
   return (
     <div
@@ -197,7 +208,11 @@ export function PlayerControls({
             aria-label={controls.playing ? "Pause" : "Play"}
             className="shadow-[0_0_16px_rgba(240,160,32,0.35)] shrink-0"
           >
-            {controls.playing ? <IconPause aria-hidden="true" /> : <IconPlay aria-hidden="true" />}
+            {controls.playing ? (
+              <IconPause aria-hidden="true" />
+            ) : (
+              <IconPlay aria-hidden="true" />
+            )}
           </Button>
         )}
 
@@ -224,17 +239,27 @@ export function PlayerControls({
               size="sm"
               icon={<IconSync aria-hidden="true" />}
               onClick={controls.handleSync}
-              className={cn("shrink-0 whitespace-nowrap", controls.syncing && "scale-95")}
+              className={cn(
+                "shrink-0 whitespace-nowrap",
+                controls.syncing && "scale-95",
+              )}
             >
               {controls.syncing ? "Syncing…" : "Sync All"}
             </Button>
-
-            {/* Fullscreen — desktop only, not functional on mobile */}
-            <Button variant="ghost" size="icon" aria-label="Fullscreen" className="hidden md:inline-flex">
-              <IconFullscreen aria-hidden="true" />
-            </Button>
           </>
         )}
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          onClick={onFullscreen}
+        >
+          {isFullscreen ? (
+            <IconExitFullscreen aria-hidden="true" />
+          ) : (
+            <IconFullscreen aria-hidden="true" />
+          )}
+        </Button>
       </div>
     </div>
   );

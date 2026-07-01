@@ -31,6 +31,26 @@ export function RoomPage() {
 
   const [leaving, setLeaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const handleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await videoContainerRef.current?.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      // Browser denied fullscreen (e.g. permissions policy) — fail silently
+    }
+  };
 
   // All hooks must run before any conditional return
   const handleSync = () => {
@@ -167,10 +187,10 @@ export function RoomPage() {
           <VideoPlayer
             videoId={videoId}
             isHost={isHost}
+            containerRef={videoContainerRef}
             onReady={controls.handlePlayerReady}
             onStateChange={controls.handleStateChange}
             className={[
-              // Mobile portrait: natural aspect-video height
               "w-full aspect-video shrink-0",
               // Mobile landscape: fixed width, let aspect-video set height, centre vertically
               "max-sm:landscape:w-[56%] max-sm:landscape:self-center",
@@ -181,18 +201,16 @@ export function RoomPage() {
           <PlayerControls
             isHost={isHost}
             controls={controls}
+            onFullscreen={handleFullscreen}
+            isFullscreen={isFullscreen}
             className={[
               "shrink-0",
-              // Landscape mobile: take remaining width, scroll if content overflows
               "max-sm:landscape:flex-1 max-sm:landscape:self-stretch max-sm:landscape:overflow-y-auto",
             ].join(" ")}
           />
         </main>
 
-        <RoomSidebar
-          open={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
+        <RoomSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </div>
     </div>
   );
